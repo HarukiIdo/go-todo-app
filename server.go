@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/HarukiIdo/go-todo-app/config"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -27,27 +28,15 @@ func NewServer(l net.Listener, mux http.Handler) *Server {
 }
 
 func main() {
-	srv := Server{}
-	if err := srv.run(context.Background()); err != nil {
+	if err := run(context.Background()); err != nil {
 		fmt.Printf("failed to terminate server: %v", err)
 	}
 }
 
-func (s *Server) run(ctx context.Context) error {
+func (s *Server) Run(ctx context.Context) error {
 	// グレースフルシャットダウンの実装
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
-
-	// cfg, err := config.New()
-	// if err != nil {
-	// 	return nil
-	// }
-	// l, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
-	// if err != nil {
-	// 	log.Fatalf("failed to listen port %d: %v", cfg.Port, err)
-	// }
-	// url := fmt.Sprintf("http://%s", l.Addr().String())
-	// log.Printf("start with: %v", url)
 
 	eg, ctx := errgroup.WithContext(ctx)
 
@@ -70,6 +59,25 @@ func (s *Server) run(ctx context.Context) error {
 	}
 	// Goメソッドで起動した別ゴルーチンの終了を待つ
 	return eg.Wait()
+}
+
+func run(ctx context.Context) error {
+
+	cfg, err := config.New()
+	if err != nil {
+		return err
+	}
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
+	if err != nil {
+		log.Fatalf("failed to listen port %d: %v", cfg.Port, err)
+	}
+	url := fmt.Sprintf("http://%s", l.Addr().String())
+	log.Printf("start with: %v", url)
+
+	mux := NewMux()
+	s := NewServer(l, mux)
+
+	return s.Run(ctx)
 }
 
 // Hello ~!を返す簡易ハンドラー

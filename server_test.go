@@ -24,7 +24,7 @@ func TestServer_Run(t *testing.T) {
 	})
 	eg.Go(func() error {
 		s := NewServer(l, mux)
-		return s.run(ctx)
+		return s.Run(ctx)
 	})
 	in := "message"
 	url := fmt.Sprintf("http://%s/%s", l.Addr().String(), in)
