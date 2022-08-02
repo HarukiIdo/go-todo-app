@@ -6,13 +6,18 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/HarukiIdo/go-todo-app/config"
 	"golang.org/x/sync/errgroup"
 )
 
-func hello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
+type Server struct {
+	srv *http.Server
+	l   net.Listener
 }
 
 func main() {
@@ -22,6 +27,10 @@ func main() {
 }
 
 func run(ctx context.Context) error {
+	// グレースフルシャットダウンの実装
+	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	cfg, err := config.New()
 	if err != nil {
 		return nil
@@ -33,8 +42,10 @@ func run(ctx context.Context) error {
 	url := fmt.Sprintf("http://%s", l.Addr().String())
 	log.Printf("start with: %v", url)
 
-	http.HandleFunc("/", hello)
-	s := &http.Server{}
+	// 引数で受けとるnet.Listenerを利用するためAddrフィールドは指定しない
+	s := &http.Server{
+		Handler: http.HandlerFunc(hello),
+	}
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// 別語ルーチンでHTTPサーバを起動する
@@ -56,4 +67,10 @@ func run(ctx context.Context) error {
 	}
 	// Goメソッドで起動した別ゴルーチンの終了を待つ
 	return eg.Wait()
+}
+
+// Hello ~!を返す簡易ハンドラー
+func hello(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(5 * time.Second)
+	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
 }
