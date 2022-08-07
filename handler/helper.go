@@ -12,6 +12,7 @@ type ErrResponse struct {
 	Details []string `json:"details,omitempty"`
 }
 
+// レスポンスデータをJSONに変換してヘッダに書き込むヘルパー関数
 func RespondJSON(ctx context.Context, w http.ResponseWriter, body interface{}, status int) {
 	w.Header().Set("Content-Type", "application/jsonl; charaset-utf-8")
 	bodyBytes, err := json.Marshal(body)

@@ -9,7 +9,7 @@ require (
 
 require (
 	github.com/caarlos0/env/v6 v6.9.3
-	github.com/vektah/gqlparser/v2 v2.4.7
+	github.com/go-chi/chi/v5 v5.0.7
 )
 
 require (
@@ -21,7 +21,4 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 )
 
-require (
-	github.com/agnivade/levenshtein v1.0.1 // indirect
-	github.com/go-playground/validator/v10 v10.11.0
-)
+require github.com/go-playground/validator/v10 v10.11.0
